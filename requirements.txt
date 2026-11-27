@@ -1,0 +1,8 @@
+# Python 3.12. Versions pinned so local runs and CI behave the same.
+sigma-cli==4.0.1
+pySigma==2.1.2
+pySigma-backend-sqlite==2.2.0
+pySigma-pipeline-sysmon==3.0.0
+pySigma-pipeline-windows==3.0.0
+pytest==9.2.0
+PyYAML==6.0.4
