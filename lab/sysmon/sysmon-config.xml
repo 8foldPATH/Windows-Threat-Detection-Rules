@@ -1,0 +1,66 @@
+<!--
+  lab/sysmon/sysmon-config.xml
+  Purpose-built Sysmon configuration for the Windows Threat Detection Library lab VM.
+  It logs only what the 15 detections need and switches every other event type off,
+  so each Sysmon event in the lab has a known reason to exist.
+
+  Install (built-in Sysmon):  sysmon -i C:\lab\sysmon-config.xml
+  Update after a change:      sysmon -c C:\lab\sysmon-config.xml
+-->
+<Sysmon schemaversion="4.90">
+  <HashAlgorithms>SHA256</HashAlgorithms>
+  <EventFiltering>
+
+    <!-- Event ID 1, ProcessCreate: log every process (an empty exclude list excludes nothing).
+         Command lines and parent-child links drive WTD-001 to WTD-006 and WTD-010/011. -->
+    <RuleGroup name="ProcessCreate" groupRelation="or">
+      <ProcessCreate onmatch="exclude" />
+    </RuleGroup>
+
+    <!-- Event ID 10, ProcessAccess: only handles opened to LSASS (WTD-009).
+         Deliberately untuned: filtering legitimate callers is part of that rule's false-positive analysis. -->
+    <RuleGroup name="ProcessAccess" groupRelation="or">
+      <ProcessAccess onmatch="include">
+        <TargetImage condition="end with">\lsass.exe</TargetImage>
+      </ProcessAccess>
+    </RuleGroup>
+
+    <!-- Event ID 11, FileCreate: Startup folders (WTD-008) and memory dump files (WTD-010). -->
+    <RuleGroup name="FileCreate" groupRelation="or">
+      <FileCreate onmatch="include">
+        <TargetFilename condition="contains">\Start Menu\Programs\Startup\</TargetFilename>
+        <TargetFilename condition="end with">.dmp</TargetFilename>
+      </FileCreate>
+    </RuleGroup>
+
+    <!-- Event IDs 12-14, RegistryEvent: Run/RunOnce keys (WTD-007) and Defender exclusions/policy (WTD-014). -->
+    <RuleGroup name="RegistryEvent" groupRelation="or">
+      <RegistryEvent onmatch="include">
+        <TargetObject condition="contains">\CurrentVersion\Run</TargetObject>
+        <TargetObject condition="contains">\Windows Defender\Exclusions\</TargetObject>
+        <TargetObject condition="contains">\Policies\Microsoft\Windows Defender\</TargetObject>
+      </RegistryEvent>
+    </RuleGroup>
+
+    <!-- Every other event type is switched off: an include list with no rules matches nothing. -->
+    <RuleGroup name="" groupRelation="or"><FileCreateTime onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><NetworkConnect onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><ProcessTerminate onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><DriverLoad onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><ImageLoad onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><CreateRemoteThread onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><RawAccessRead onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><FileCreateStreamHash onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><PipeEvent onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><WmiEvent onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><DnsQuery onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><FileDelete onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><ClipboardChange onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><ProcessTampering onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><FileDeleteDetected onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><FileBlockExecutable onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><FileBlockShredding onmatch="include" /></RuleGroup>
+    <RuleGroup name="" groupRelation="or"><FileExecutableDetected onmatch="include" /></RuleGroup>
+
+  </EventFiltering>
+</Sysmon>
